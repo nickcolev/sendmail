@@ -4,47 +4,71 @@
 
 TMPDIR='/tmp/sendmail'
 TCZ='/tmp/sendmail.tcz'
+INSTALL=0
+DOMAIN='example.com'
 
 eAbort() {
 	echo "${RED}${1}${NORMAL}"
 	exit 1
 }
 usage() {
-	echo "usage: `basename $0` [i]nstall"
-	echo "if 'i' option passed -- TCZ shall be installed"
-	echo "otherwise the TCZ shall be in '/tmp'"
+	cat <<USG
+${WHITE}usage: `basename $0` [-i] [domain]${NORMAL}
+
+If '-i' option is provided -- the TCZ shall be installed
+Otherwise the extension shall be in '/tmp'
+USG
 	exit 1
 }
 
-if [ "${1}" == "--help" ]; then usage; fi
+# Parse args
+while [ "${1}" ]; do
+	case "${1}" in
+		--help) usage;;
+		-i) INSTALL=1;;
+		 *) DOMAIN="${1}";;
+	esac
+	shift
+done
 
 echo "${BLUE}building 'sendmail.tcz'${NORMAL}"
-if [ -d "${TMPDIR}" ]; then rm -rf "${TMPDIR}"; fi
 
-cd obj.* 2>/dev/null
-if [ $? -ne 0 ]; then eAbort 'Did you ./Build?'; fi
-if [ ! -x sendmail/sendmail ]; then eAbort 'Did you ./Build sendmail?'; fi
+# Build sendmail.cf if necessary
 if [ ! -f cf/cf/sendmail.cf ]; then
 	cd cf/cf
 	./Build sendmail.cf
 	cd ../..
 fi
 
+# Go to the built
+cd obj.* 2>/dev/null
+if [ $? -ne 0 ]; then eAbort 'Did you ./Build?'; fi
+if [ ! -x sendmail/sendmail ]; then eAbort 'Did you ./Build sendmail?'; fi
+
+# Prepare work folder for the extension and populate
+[ -d "${TMPDIR}" ] && rm -rf "${TMPDIR}"
 mkdir -p "${TMPDIR}/etc/mail"
 cp ../cf/cf/sendmail.cf "${TMPDIR}/etc/mail/"
 cp ../cf/cf/submit.cf "${TMPDIR}/etc/mail/"
-
+touch "${TMPDIR}/etc/mail/local-host-names"
 mkdir -p "${TMPDIR}/usr/local/bin"
 ls | while read d; do
 	if [ -x "${d}/${d}" ]; then cp "${d}/${d}" "${TMPDIR}/usr/local/bin"; fi
 done
 
+# Touch the RunAsUser...
+sed -i 's/RunAsUser=smmsp/RunAsUser=tc/' "${TMPDIR}/etc/mail/submit.cf"
+# ... and the domain
+sed -i "s/#Dj$w.*/Dj${DOMAIN}/" "${TMPDIR}/etc/mail/sendmail.cf"
+
+# Build the extension
 if [ -f "${TCZ}" ]; then rm -f "${TCZ}"; fi
 mksquashfs "${TMPDIR}/" "${TCZ}" > /dev/null
 rm -rf "${TMPDIR}"
 md5sum "${TCZ}" > "${TCZ}.md5.txt"
 
-if [ "${1}" == "i" ]; then
+if [ $INSTALL -ne 0 ]; then
+	# Install the extension if requested
 	tcedir=`readlink /etc/sysconfig/tcedir`
 	echo "${BLUE}move '${TCZ}*' to '${tcedir}/optional'${NORMAL}"
 	cp -f "${TCZ}" "${tcedir}/optional"
@@ -53,8 +77,9 @@ if [ "${1}" == "i" ]; then
 	grep -v sendmail.tcz "${tcedir}/onboot.lst" > /tmp/onboot.lst
 	echo 'sendmail.tcz' >> /tmp/onboot.lst
 	mv -f /tmp/onboot.lst "${tcedir}/"
-	cat "${tcedir}/onboot.lst"
+	tail -n 1 "${tcedir}/onboot.lst"
 else
+	# or show the extension if not
 	echo "${BLUE}done${NORMAL}"
 	ls -1 /tmp/sendmail*
 fi
