@@ -24,11 +24,15 @@ if [ -d "${TMPDIR}" ]; then rm -rf "${TMPDIR}"; fi
 cd obj.* 2>/dev/null
 if [ $? -ne 0 ]; then eAbort 'Did you ./Build?'; fi
 if [ ! -x sendmail/sendmail ]; then eAbort 'Did you ./Build sendmail?'; fi
+if [ ! -f cf/cf/sendmail.cf ]; then
+	cd cf/cf
+	./Build sendmail.cf
+	cd ../..
+fi
 
 mkdir -p "${TMPDIR}/etc/mail"
 cp ../cf/cf/sendmail.cf "${TMPDIR}/etc/mail/"
 cp ../cf/cf/submit.cf "${TMPDIR}/etc/mail/"
-#echo 'kayca.tk' > "${TMPDIR}/etc/mail/local-host-names"
 
 mkdir -p "${TMPDIR}/usr/local/bin"
 ls | while read d; do
