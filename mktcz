@@ -51,18 +51,27 @@ mkdir -p "${TMPDIR}/etc/mail"
 cp ../cf/cf/sendmail.cf "${TMPDIR}/etc/mail/"
 cp ../cf/cf/submit.cf "${TMPDIR}/etc/mail/"
 touch "${TMPDIR}/etc/mail/local-host-names"
+cat <<ALIAS > /tmp/aliases
+MAILER-DAEMON: postmaster
+postmaster: root
+root: root@${DOMAIN}
+${USER}: ${USER}@${DOMAIN}
+ALIAS
+makemap/makemap hash "${TMPDIR}/etc/mail/aliases" < /tmp/aliases
 mkdir -p "${TMPDIR}/usr/local/bin"
 ls | while read d; do
 	if [ -x "${d}/${d}" ]; then cp "${d}/${d}" "${TMPDIR}/usr/local/bin"; fi
 done
 
+# Touch the smmsp user
+sed -i 's/=smmsp/=tc/' "${TMPDIR}/etc/mail/"*.cf
 # Touch the domain
 sed -i "s/#Dj$w.*/Dj${DOMAIN}/" "${TMPDIR}/etc/mail/sendmail.cf"
 
 # Build the extension
 if [ -f "${TCZ}" ]; then rm -f "${TCZ}"; fi
 mksquashfs "${TMPDIR}/" "${TCZ}" > /dev/null
-#rm -rf "${TMPDIR}"
+rm -rf "${TMPDIR}"
 md5sum "${TCZ}" > "${TCZ}.md5.txt"
 echo 'db.tcz' > "${TCZ}.dep"
 
