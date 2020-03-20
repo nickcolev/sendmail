@@ -56,22 +56,22 @@ ls | while read d; do
 	if [ -x "${d}/${d}" ]; then cp "${d}/${d}" "${TMPDIR}/usr/local/bin"; fi
 done
 
-# Touch the RunAsUser...
-sed -i 's/RunAsUser=smmsp/RunAsUser=tc/' "${TMPDIR}/etc/mail/submit.cf"
-# ... and the domain
+# Touch the domain
 sed -i "s/#Dj$w.*/Dj${DOMAIN}/" "${TMPDIR}/etc/mail/sendmail.cf"
 
 # Build the extension
 if [ -f "${TCZ}" ]; then rm -f "${TCZ}"; fi
 mksquashfs "${TMPDIR}/" "${TCZ}" > /dev/null
-rm -rf "${TMPDIR}"
+#rm -rf "${TMPDIR}"
 md5sum "${TCZ}" > "${TCZ}.md5.txt"
+echo 'db.tcz' > "${TCZ}.dep"
 
 if [ $INSTALL -ne 0 ]; then
 	# Install the extension if requested
 	tcedir=`readlink /etc/sysconfig/tcedir`
 	echo "${BLUE}move '${TCZ}*' to '${tcedir}/optional'${NORMAL}"
 	cp -f "${TCZ}" "${tcedir}/optional"
+	cp -f "${TCZ}.dep" "${tcedir}/optional"
 	cp -f "${TCZ}.md5.txt" "${tcedir}/optional"
 	echo "${BLUE}adjust '${tcedir}/onboot.lst'${NORMAL}"
 	grep -v sendmail.tcz "${tcedir}/onboot.lst" > /tmp/onboot.lst
