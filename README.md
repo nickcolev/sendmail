@@ -2,7 +2,7 @@ PREREQUISITIES
 
   Make sure you have development extensions and squashfs tools loaded, e.g.
 
-    tce-load -i[w] compiletc squashfs-tools
+    tce-load -i[w] compiletc squashfs-tools db-dev
 
 
 BUILD

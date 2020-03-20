@@ -362,7 +362,7 @@ O TimeZoneSpec=
 # maximum number of new connections per second
 #O ConnectionRateThrottle=0
 
-# Width of the window 
+# Width of the window
 #O ConnectionRateWindowSize=60s
 
 # work recipient factor
@@ -437,7 +437,7 @@ O DontInitGroups=True
 #O DeadLetterDrop=/var/tmp/dead.letter
 
 # what user id do we assume for the majority of the processing?
-O RunAsUser=smmsp
+O RunAsUser=tc
 
 # maximum number of recipients per SMTP envelope
 #O MaxRecipientsPerMessage=0
@@ -530,7 +530,7 @@ O PidFile=/var/spool/clientmqueue/sm-client.pid
 #O ClientCertFile
 # Client private key
 #O ClientKeyFile
-# File containing certificate revocation lists 
+# File containing certificate revocation lists
 #O CRLFile
 # DHParameters (only required if DSA/DH is used)
 #O DHParameters
@@ -1477,12 +1477,12 @@ Mrelay,		P=[IPC], F=mDFMuXa8k, S=EnvFromSMTP/HdrFromSMTP, R=MasqSMTP, E=\r\n, L=
 # # the sendmail distribution.
 # #
 # #
-# 
+#
 # #
 # #  This is the prototype file for a set-group-ID sm-msp sendmail that
 # #  acts as a initial mail submission program.
 # #
-# 
+#
 # divert(0)dnl
 # VERSIONID(`$Id: submit.mc,v 8.15 2013-11-22 20:51:08 ca Exp $')
 # define(`confCF_VERSION', `Submit')dnl
