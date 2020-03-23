@@ -1,11 +1,11 @@
-# PREREQUISITIES
+## PREREQUISITIES
 
 Make sure you have development extensions and squashfs tools loaded, e.g.
 
 ```tce-load -i[w] compiletc squashfs-tools db-dev```
 
 
-# BUILD
+## BUILD
 
 1. Follow provided with sendmail READMEs and INSTALL to tailor configuration (optional)
 2. In the root of sendmail code run (or follow provided build instructions)
@@ -13,7 +13,7 @@ Make sure you have development extensions and squashfs tools loaded, e.g.
 ```./Build```
 
 
-# MAKE EXTENSION
+## MAKE EXTENSION
 
 Still in the root of the source code, run
 
@@ -26,16 +26,24 @@ The script have few options. To see them, type
 
 ```./mktcz --help```
 
-Eventually, '-i' option shall install the extension.
+Eventually, '`-i`' option shall install the extension.
 Still, depending how you setup persistence, this might not
-work for you. Touches of your 'bootlocal.sh' (to start the
+work for you. Touches of your '`bootlocal.sh`' (to start the
 daemon on boot) might be necessary.
 
+**TCL [persistence](http://wiki.tinycorelinux.net/wiki:start#persistence):**
+The files that sendmail expect in `/etc/mail` are copied (if not already exist)
+in `tc` user `.config/mail` folder by the `mktcz` script. In the extension
+`/etc/mail` is symlink to it.
+Add `~/.config/mail` to your backup/restore pipe (if persistence is not set).
 
-# REFERENCES
+
+## REFERENCES
 ### Sendmail
-* Official site -- http://www.sendmail.com/ (https://www.proofpoint.com/us/products/open-source-email-solution)
-* Wikipedia -- https://en.wikipedia.org/wiki/Sendmail
-* Source code -- ftp://ftp.sendmail.org/pub/sendmail/sendmail.8.15.2.tar.gz
+* [Official site](http://www.sendmail.com/)
+* [Wikipedia](https://en.wikipedia.org/wiki/Sendmail)
+* [Source code](ftp://ftp.sendmail.org/pub/sendmail/sendmail.8.15.2.tar.gz)
 ### Tiny Core Linux (TCL)
-* Official site -- http://distro.ibiblio.org/tinycorelinux/
+* [Official site](http://distro.ibiblio.org/tinycorelinux/)
+* [Custom extensions](http://wiki.tinycorelinux.net/wiki:extension_for_settings)
+* [Creating extensions](http://wiki.tinycorelinux.net/wiki:creating_extensions)
