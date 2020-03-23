@@ -5,7 +5,6 @@
 TMPDIR='/tmp/sendmail'
 TCZ='/tmp/sendmail.tcz'
 INSTALL=0
-DOMAIN='example.com'
 
 eAbort() {
 	echo "${RED}${1}${NORMAL}"
@@ -13,7 +12,7 @@ eAbort() {
 }
 usage() {
 	cat <<USG
-${WHITE}usage: `basename $0` [-i] [domain]${NORMAL}
+${WHITE}usage: `basename $0` [-i]${NORMAL}
 
 If '-i' option is provided -- the TCZ shall be installed
 Otherwise the extension shall be in '/tmp'
@@ -26,7 +25,7 @@ while [ "${1}" ]; do
 	case "${1}" in
 		--help) usage;;
 		-i) INSTALL=1;;
-		 *) DOMAIN="${1}";;
+		 *) echo "${YELLOW}unknown option '${1}'";;
 	esac
 	shift
 done
@@ -39,6 +38,7 @@ if [ ! -f cf/cf/sendmail.cf ]; then
 	./Build sendmail.cf
 	cd ../..
 fi
+DOMAIN=`grep Dj cf/cf/sendmail.cf`
 
 # Go to the built
 cd obj.* 2>/dev/null
@@ -65,8 +65,17 @@ done
 
 # Touch the smmsp user
 sed -i 's/=smmsp/=tc/' "${TMPDIR}/etc/mail/"*.cf
-# Touch the domain
-sed -i "s/#Dj$w.*/Dj${DOMAIN}/" "${TMPDIR}/etc/mail/sendmail.cf"
+
+# The files are prepared to build the extension.
+# For persistence, move 'etc/mail' in '~/.config'
+# and set link to it in 'etc'.
+if [ -d ~/.config/mail ]; then
+	# Assume the user already have configuration
+	rm -rf "${TMPDIR}"/etc/mail
+else
+	mv "${TMPDIR}"/etc/mail ~/.config/
+fi
+ln -s ~/.config/mail "${TMPDIR}"/etc/
 
 # Build the extension
 if [ -f "${TCZ}" ]; then rm -f "${TCZ}"; fi
@@ -75,9 +84,9 @@ rm -rf "${TMPDIR}"
 md5sum "${TCZ}" > "${TCZ}.md5.txt"
 echo 'db.tcz' > "${TCZ}.dep"
 
+tcedir=`readlink /etc/sysconfig/tcedir`
 if [ $INSTALL -ne 0 ]; then
 	# Install the extension if requested
-	tcedir=`readlink /etc/sysconfig/tcedir`
 	echo "${BLUE}move '${TCZ}*' to '${tcedir}/optional'${NORMAL}"
 	cp -f "${TCZ}" "${tcedir}/optional"
 	cp -f "${TCZ}.dep" "${tcedir}/optional"
@@ -91,4 +100,5 @@ else
 	# or show the extension if not
 	echo "${BLUE}done${NORMAL}"
 	ls -1 /tmp/sendmail*
+	echo "${BLUE}copy these in '${tcedir}/optional'${NORMAL}"
 fi

@@ -19,7 +19,7 @@ Still in the root of the source code, run
 
 ```./mktcz```
 
-This should build /tmp/sendmail.tcz (and related checksum).
+This should build /tmp/sendmail.tcz (and related checksum and dependencies files).
 Follow TCL instructions to setup the extension.
 
 The script have few options. To see them, type
