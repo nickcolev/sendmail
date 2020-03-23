@@ -42,7 +42,7 @@ Add `~/.config/mail` to your backup/restore pipe (if persistence is not set).
 ### Sendmail
 * [Official site](http://www.sendmail.com/)
 * [Wikipedia](https://en.wikipedia.org/wiki/Sendmail)
-* [Source code](ftp://ftp.sendmail.org/pub/sendmail/sendmail.8.15.2.tar.gz)
+* Source code ftp://ftp.sendmail.org/pub/sendmail/sendmail.8.15.2.tar.gz
 ### Tiny Core Linux (TCL)
 * [Official site](http://distro.ibiblio.org/tinycorelinux/)
 * [Custom extensions](http://wiki.tinycorelinux.net/wiki:extension_for_settings)
