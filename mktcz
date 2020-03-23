@@ -30,6 +30,7 @@ while [ "${1}" ]; do
 	shift
 done
 
+if [ ! -d obj* ]; then eAbort './Build first please'; fi
 echo "${BLUE}building 'sendmail.tcz'${NORMAL}"
 
 # Build sendmail.cf if necessary
@@ -51,13 +52,13 @@ mkdir -p "${TMPDIR}/etc/mail"
 cp ../cf/cf/sendmail.cf "${TMPDIR}/etc/mail/"
 cp ../cf/cf/submit.cf "${TMPDIR}/etc/mail/"
 touch "${TMPDIR}/etc/mail/local-host-names"
-cat <<ALIAS > /tmp/aliases
+cat <<ALIAS > "${TMPDIR}/etc/mail/aliases"
 MAILER-DAEMON: postmaster
 postmaster: root
 root: root@${DOMAIN}
 ${USER}: ${USER}@${DOMAIN}
 ALIAS
-makemap/makemap hash "${TMPDIR}/etc/mail/aliases" < /tmp/aliases
+makemap/makemap -C "${TMPDIR}/etc/mail/sendmail.cf" hash "${TMPDIR}/etc/mail/aliases" < "${TMPDIR}/etc/mail/aliases"
 mkdir -p "${TMPDIR}/usr/local/bin"
 ls | while read d; do
 	if [ -x "${d}/${d}" ]; then cp "${d}/${d}" "${TMPDIR}/usr/local/bin"; fi
@@ -98,7 +99,8 @@ if [ $INSTALL -ne 0 ]; then
 	tail -n 1 "${tcedir}/onboot.lst"
 else
 	# or show the extension if not
-	echo "${BLUE}done${NORMAL}"
+	echo "${GREEN}done${NORMAL}"
 	ls -1 /tmp/sendmail*
 	echo "${BLUE}copy these in '${tcedir}/optional'${NORMAL}"
+	echo "${BLUE}and add the extension to 'onboot' list${NORMAL}"
 fi

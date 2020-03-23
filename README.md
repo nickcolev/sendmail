@@ -38,6 +38,10 @@ in `tc` user `.config/mail` folder by the `mktcz` script. In the extension
 Add `~/.config/mail` to your backup/restore pipe (if persistence is not set).
 
 
+## CONFIGURATION
+Sendmail documentation recommend to do changes in `sendmail.mc` and
+rebuild `sendmail.cf`. Do configuration changes in `~/.config/mail`.
+
 ## REFERENCES
 ### Sendmail
 * [Official site](http://www.sendmail.com/)
