@@ -10,6 +10,16 @@ eAbort() {
 	echo "${RED}${1}${NORMAL}"
 	exit 1
 }
+noteInstall() {
+    cat <<NT
+${BLUE}Copy these in '${tcedir}/optional' and add the extension to 'onboot' list.
+
+Sendmail expect config files in '/etc/mail' and don't like symbolic links.
+When the extension is loaded at boot, they are in '/usr/local/etc'.
+Either add in 'bootlocal.sh' statement to copy the configuration files
+or setup persistense your way.${NORMAL}
+NT
+}
 usage() {
 	cat <<USG
 ${WHITE}usage: `basename $0` [-i]${NORMAL}
@@ -48,39 +58,41 @@ if [ ! -x sendmail/sendmail ]; then eAbort 'Did you ./Build sendmail?'; fi
 
 # Prepare work folder for the extension and populate
 [ -d "${TMPDIR}" ] && rm -rf "${TMPDIR}"
-mkdir -p "${TMPDIR}/etc/mail"
-cp ../cf/cf/sendmail.cf "${TMPDIR}/etc/mail/"
-cp ../cf/cf/submit.cf "${TMPDIR}/etc/mail/"
-touch "${TMPDIR}/etc/mail/local-host-names"
-cat <<ALIAS > "${TMPDIR}/etc/mail/aliases"
+# Spool
+DST="${TMPDIR}/var/spool"
+for f in clientmqueue mqueue; do
+    mkdir -p "${DST}/${f}"
+    chmod 0640 "${DST}/${f}"
+    sudo chown root "${DST}/${f}"
+done
+DST="${TMPDIR}/usr/local/etc/mail"
+# Config
+mkdir -p "${DST}"
+for f in sendmail.cf submit.cf; do
+    cp ../cf/cf/"${f}" "${DST}"
+done
+touch "${DST}"/local-host-names
+cat <<ALIAS > "${DST}"/aliases
 MAILER-DAEMON: postmaster
 postmaster: root
 root: root@${DOMAIN}
 ${USER}: ${USER}@${DOMAIN}
 ALIAS
-mkdir -p "${TMPDIR}/usr/local/bin"
+# Touch the smmsp user
+sed -i 's/=smmsp/=tc/' "${DST}"/*.cf
+chmod 0640 "${DST}"/*
+chmod 0750 "${DST}"
+sudo chown -R root "${DST}"
+# Binaries
+mkdir -p "${TMPDIR}"/usr/local/bin
 ls | while read d; do
 	if [ -x "${d}/${d}" ]; then cp "${d}/${d}" "${TMPDIR}/usr/local/bin"; fi
 done
 
-# Touch the smmsp user
-sed -i 's/=smmsp/=tc/' "${TMPDIR}/etc/mail/"*.cf
-
-# The files are prepared to build the extension.
-# For persistence, move 'etc/mail' in '~/.config'
-# and set link to it in 'etc'.
-if [ -d ~/.config/mail ]; then
-	# Assume the user already have configuration
-	rm -rf "${TMPDIR}"/etc/mail
-else
-	mv "${TMPDIR}"/etc/mail ~/.config/
-fi
-ln -s ~/.config/mail "${TMPDIR}"/etc/
-
 # Build the extension
 if [ -f "${TCZ}" ]; then rm -f "${TCZ}"; fi
 mksquashfs "${TMPDIR}/" "${TCZ}" > /dev/null
-rm -rf "${TMPDIR}"
+#rm -rf "${TMPDIR}"
 md5sum "${TCZ}" > "${TCZ}.md5.txt"
 echo 'db.tcz' > "${TCZ}.dep"
 
@@ -99,7 +111,6 @@ if [ $INSTALL -ne 0 ]; then
 else
 	# or show the extension if not
 	echo "${GREEN}done${NORMAL}"
-	ls -1 /tmp/sendmail*
-	echo "${BLUE}copy these in '${tcedir}/optional'${NORMAL}"
-	echo "${BLUE}and add the extension to 'onboot' list${NORMAL}"
+	ls -1 /tmp/sendmail.tcz*
+    noteInstall
 fi
