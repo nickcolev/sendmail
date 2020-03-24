@@ -58,7 +58,6 @@ postmaster: root
 root: root@${DOMAIN}
 ${USER}: ${USER}@${DOMAIN}
 ALIAS
-makemap/makemap -C "${TMPDIR}/etc/mail/sendmail.cf" hash "${TMPDIR}/etc/mail/aliases" < "${TMPDIR}/etc/mail/aliases"
 mkdir -p "${TMPDIR}/usr/local/bin"
 ls | while read d; do
 	if [ -x "${d}/${d}" ]; then cp "${d}/${d}" "${TMPDIR}/usr/local/bin"; fi
