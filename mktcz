@@ -57,12 +57,12 @@ if [ $? -ne 0 ]; then eAbort 'Did you ./Build?'; fi
 if [ ! -x sendmail/sendmail ]; then eAbort 'Did you ./Build sendmail?'; fi
 
 # Prepare work folder for the extension and populate
-[ -d "${TMPDIR}" ] && rm -rf "${TMPDIR}"
+[ -d "${TMPDIR}" ] && sudo rm -rf "${TMPDIR}"
 # Spool
 DST="${TMPDIR}/var/spool"
 for f in clientmqueue mqueue; do
     mkdir -p "${DST}/${f}"
-    chmod 0640 "${DST}/${f}"
+    chmod 0750 "${DST}/${f}"
     sudo chown root "${DST}/${f}"
 done
 DST="${TMPDIR}/usr/local/etc/mail"
@@ -88,11 +88,25 @@ mkdir -p "${TMPDIR}"/usr/local/bin
 ls | while read d; do
 	if [ -x "${d}/${d}" ]; then cp "${d}/${d}" "${TMPDIR}/usr/local/bin"; fi
 done
+# Service
+DST="${TMPDIR}"/etc/init.d/services
+mkdir -p "${DST}"
+cat <<SRV > "${DST}"/sendmail
+#!/bin/sh
+case "\${1}" in
+    start)  sendmail -bd -q10m;;
+    stop)   pkill sendmail;;
+    status) pidof -o %PPID sendmail;;
+    *)      exit 1;;
+esac
+SRV
+chmod 0750 "${DST}"/sendmail
+sudo chown root "${DST}"/sendmail
 
 # Build the extension
 if [ -f "${TCZ}" ]; then rm -f "${TCZ}"; fi
 mksquashfs "${TMPDIR}/" "${TCZ}" > /dev/null
-#rm -rf "${TMPDIR}"
+rm -rf "${TMPDIR}"
 md5sum "${TCZ}" > "${TCZ}.md5.txt"
 echo 'db.tcz' > "${TCZ}.dep"
 
